@@ -12,7 +12,6 @@ const QRScanner = () => {
 
   const startCamera = async () => {
     try {
-      // 既存のストリームを停止
       if (videoRef.current?.srcObject) {
         (videoRef.current.srcObject as MediaStream)
           .getTracks()
@@ -73,7 +72,11 @@ const QRScanner = () => {
 
         ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
-        const imageData = ctx.getImageData(x, y, scanAreaWidth, scanAreaHeight);
+        // スキャン範囲を上下に5pxずつ広げる
+        const extendedY = y - 5;
+        const extendedHeight = scanAreaHeight + 10;
+
+        const imageData = ctx.getImageData(x, extendedY, scanAreaWidth, extendedHeight);
 
         try {
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
@@ -84,14 +87,14 @@ const QRScanner = () => {
             setScanning(false);
             const captureCanvas = document.createElement('canvas');
             captureCanvas.width = scanAreaWidth;
-            captureCanvas.height = scanAreaHeight;
+            captureCanvas.height = extendedHeight;
             const captureCtx = captureCanvas.getContext('2d');
             
             if (captureCtx) {
               captureCtx.drawImage(
                 canvas, 
-                x, y, scanAreaWidth, scanAreaHeight,
-                0, 0, scanAreaWidth, scanAreaHeight
+                x, extendedY, scanAreaWidth, extendedHeight,
+                0, 0, scanAreaWidth, extendedHeight
               );
               setCapturedImage(captureCanvas.toDataURL("image/png"));
               toast.success("QRコードを検出しました", {
