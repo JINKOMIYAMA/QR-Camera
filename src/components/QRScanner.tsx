@@ -13,9 +13,15 @@ const QRScanner = () => {
   useEffect(() => {
     const startCamera = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
+        const constraints = {
+          video: {
+            facingMode: "environment",
+            width: { ideal: window.innerWidth },
+            height: { ideal: window.innerHeight }
+          }
+        };
+        
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
@@ -92,7 +98,7 @@ const QRScanner = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full">
+    <div className="fixed inset-0 bg-black">
       <video
         ref={videoRef}
         autoPlay
