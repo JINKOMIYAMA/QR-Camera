@@ -9,10 +9,11 @@ const QRScanner = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scanning, setScanning] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [qrDetected, setQrDetected] = useState(false);
+  const [countdown, setCountdown] = useState(3);
 
   const startCamera = async () => {
     try {
-      // 既存のストリームを停止
       if (videoRef.current?.srcObject) {
         (videoRef.current.srcObject as MediaStream)
           .getTracks()
@@ -39,6 +40,8 @@ const QRScanner = () => {
   useEffect(() => {
     if (scanning) {
       startCamera();
+      setQrDetected(false);
+      setCountdown(3);
     }
 
     return () => {
@@ -52,9 +55,10 @@ const QRScanner = () => {
 
   useEffect(() => {
     let animationFrame: number;
+    let countdownTimer: NodeJS.Timeout;
 
     const scan = () => {
-      if (!scanning) return;
+      if (!scanning || qrDetected) return;
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -80,31 +84,44 @@ const QRScanner = () => {
             inversionAttempts: "dontInvert",
           });
 
-          if (code) {
-            setScanning(false);
-            const captureCanvas = document.createElement('canvas');
-            captureCanvas.width = scanAreaWidth;
-            captureCanvas.height = scanAreaHeight;
-            const captureCtx = captureCanvas.getContext('2d');
-            
-            if (captureCtx) {
-              captureCtx.drawImage(
-                canvas, 
-                x, y, scanAreaWidth, scanAreaHeight,
-                0, 0, scanAreaWidth, scanAreaHeight
-              );
-              setCapturedImage(captureCanvas.toDataURL("image/png"));
-              toast.success("QRコードを検出しました", {
-                position: "top-center"
+          if (code && !qrDetected) {
+            setQrDetected(true);
+            toast.success("QRコードを検出しました。3秒後に撮影します", {
+              position: "top-center"
+            });
+
+            countdownTimer = setInterval(() => {
+              setCountdown((prev) => {
+                if (prev <= 1) {
+                  clearInterval(countdownTimer);
+                  const captureCanvas = document.createElement('canvas');
+                  captureCanvas.width = scanAreaWidth;
+                  captureCanvas.height = scanAreaHeight;
+                  const captureCtx = captureCanvas.getContext('2d');
+                  
+                  if (captureCtx) {
+                    captureCtx.drawImage(
+                      canvas, 
+                      x, y, scanAreaWidth, scanAreaHeight,
+                      0, 0, scanAreaWidth, scanAreaHeight
+                    );
+                    setCapturedImage(captureCanvas.toDataURL("image/png"));
+                    setScanning(false);
+                  }
+                  return 0;
+                }
+                return prev - 1;
               });
-            }
+            }, 1000);
           }
         } catch (error) {
           console.error("QRコードの検出中にエラーが発生しました:", error);
         }
       }
 
-      animationFrame = requestAnimationFrame(scan);
+      if (!qrDetected) {
+        animationFrame = requestAnimationFrame(scan);
+      }
     };
 
     scan();
@@ -113,8 +130,11 @@ const QRScanner = () => {
       if (animationFrame) {
         cancelAnimationFrame(animationFrame);
       }
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+      }
     };
-  }, [scanning]);
+  }, [scanning, qrDetected]);
 
   const handleDownload = () => {
     if (capturedImage) {
@@ -143,7 +163,12 @@ const QRScanner = () => {
             className="h-full w-full object-cover"
           />
           <canvas ref={canvasRef} className="hidden" />
-          <ScanOverlay scanning={scanning} />
+          <ScanOverlay scanning={!qrDetected} />
+          {qrDetected && (
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 bg-white/90 px-6 py-3 rounded-lg text-xl font-bold">
+              {countdown}秒後に撮影します
+            </div>
+          )}
         </>
       ) : (
         <div className="relative h-full flex flex-col items-center justify-center bg-black/90">
