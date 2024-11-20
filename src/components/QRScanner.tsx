@@ -66,7 +66,8 @@ const QRScanner = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
-        ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+        // ビデオフレームを描画
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
         const scanAreaHeight = scanAreaWidth / 2;
@@ -81,29 +82,34 @@ const QRScanner = () => {
           });
 
           if (code) {
-            // QRコードを検出したら、3秒待ってからキャプチャを実行
             setScanning(false);
             toast.success("QRコードを検出しました", {
               position: "top-center"
             });
 
+            // キャプチャ前に現在のフレームを保存
+            const currentFrame = canvas.toDataURL("image/png");
+
             captureTimeout = setTimeout(() => {
-              if (canvas) {
-                const captureCanvas = document.createElement('canvas');
-                captureCanvas.width = scanAreaWidth;
-                captureCanvas.height = scanAreaHeight;
-                const captureCtx = captureCanvas.getContext('2d');
-                
-                if (captureCtx) {
+              const captureCanvas = document.createElement('canvas');
+              captureCanvas.width = scanAreaWidth;
+              captureCanvas.height = scanAreaHeight;
+              const captureCtx = captureCanvas.getContext('2d');
+              
+              if (captureCtx) {
+                // 保存したフレームから新しいImageを作成
+                const img = new Image();
+                img.onload = () => {
                   captureCtx.drawImage(
-                    canvas, 
+                    img,
                     x, y, scanAreaWidth, scanAreaHeight,
                     0, 0, scanAreaWidth, scanAreaHeight
                   );
                   setCapturedImage(captureCanvas.toDataURL("image/png"));
-                }
+                };
+                img.src = currentFrame;
               }
-            }, 3000); // 3秒に変更
+            }, 3000);
           }
         } catch (error) {
           console.error("QRコードの検出中にエラーが発生しました:", error);
