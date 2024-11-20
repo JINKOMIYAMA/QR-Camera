@@ -12,6 +12,13 @@ const QRScanner = () => {
 
   const startCamera = async () => {
     try {
+      // 既存のストリームを停止
+      if (videoRef.current?.srcObject) {
+        (videoRef.current.srcObject as MediaStream)
+          .getTracks()
+          .forEach((track) => track.stop());
+      }
+
       const constraints = {
         video: {
           facingMode: "environment",
@@ -119,9 +126,10 @@ const QRScanner = () => {
     }
   };
 
-  const handleRetry = () => {
-    setScanning(true);
+  const handleRetry = async () => {
     setCapturedImage(null);
+    setScanning(true);
+    await startCamera();
   };
 
   return (
