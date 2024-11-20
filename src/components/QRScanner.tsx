@@ -81,7 +81,7 @@ const QRScanner = () => {
           });
 
           if (code) {
-            // QRコードを検出したら、1秒待ってからキャプチャを実行
+            // QRコードを検出したら、3秒待ってからキャプチャを実行
             setScanning(false);
             toast.success("QRコードを検出しました", {
               position: "top-center"
@@ -101,7 +101,7 @@ const QRScanner = () => {
                 );
                 setCapturedImage(captureCanvas.toDataURL("image/png"));
               }
-            }, 1000);
+            }, 3000); // 3秒に変更
           }
         } catch (error) {
           console.error("QRコードの検出中にエラーが発生しました:", error);
