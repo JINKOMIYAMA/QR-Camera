@@ -43,15 +43,17 @@ export const useQRScanner = () => {
     height: number
   ) => {
     const captureCanvas = document.createElement('canvas');
+    // Add 2px padding to top and bottom of capture area
+    const captureHeight = height + 4;
     captureCanvas.width = width;
-    captureCanvas.height = height;
+    captureCanvas.height = captureHeight;
     const captureCtx = captureCanvas.getContext('2d');
     
     if (captureCtx) {
       captureCtx.drawImage(
         canvas, 
-        x, y, width, height,
-        0, 0, width, height
+        x, y - 2, width, captureHeight, // Subtract 2px from y to expand upward
+        0, 0, width, captureHeight
       );
       setCapturedImage(captureCanvas.toDataURL("image/png"));
       setScanning(false);
