@@ -67,7 +67,8 @@ const QRScanner = () => {
         canvas.height = video.videoHeight;
 
         const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
-        const scanAreaHeight = scanAreaWidth / 3;
+        // スキャンエリアの高さを増やす（幅の1/2に変更）
+        const scanAreaHeight = scanAreaWidth / 2;
         const x = (video.videoWidth - scanAreaWidth) / 2;
         const y = (video.videoHeight - scanAreaHeight) / 2;
 
