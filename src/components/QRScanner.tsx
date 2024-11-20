@@ -12,7 +12,6 @@ const QRScanner = () => {
 
   const startCamera = async () => {
     try {
-      // 既存のストリームを停止
       if (videoRef.current?.srcObject) {
         (videoRef.current.srcObject as MediaStream)
           .getTracks()
@@ -52,6 +51,7 @@ const QRScanner = () => {
 
   useEffect(() => {
     let animationFrame: number;
+    let captureTimeout: NodeJS.Timeout;
 
     const scan = () => {
       if (!scanning) return;
@@ -67,7 +67,6 @@ const QRScanner = () => {
         canvas.height = video.videoHeight;
 
         const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
-        // スキャンエリアの高さを増やす（幅の1/2に変更）
         const scanAreaHeight = scanAreaWidth / 2;
         const x = (video.videoWidth - scanAreaWidth) / 2;
         const y = (video.videoHeight - scanAreaHeight) / 2;
@@ -82,23 +81,27 @@ const QRScanner = () => {
           });
 
           if (code) {
+            // QRコードを検出したら、1秒待ってからキャプチャを実行
             setScanning(false);
-            const captureCanvas = document.createElement('canvas');
-            captureCanvas.width = scanAreaWidth;
-            captureCanvas.height = scanAreaHeight;
-            const captureCtx = captureCanvas.getContext('2d');
-            
-            if (captureCtx) {
-              captureCtx.drawImage(
-                canvas, 
-                x, y, scanAreaWidth, scanAreaHeight,
-                0, 0, scanAreaWidth, scanAreaHeight
-              );
-              setCapturedImage(captureCanvas.toDataURL("image/png"));
-              toast.success("QRコードを検出しました", {
-                position: "top-center"
-              });
-            }
+            toast.success("QRコードを検出しました", {
+              position: "top-center"
+            });
+
+            captureTimeout = setTimeout(() => {
+              const captureCanvas = document.createElement('canvas');
+              captureCanvas.width = scanAreaWidth;
+              captureCanvas.height = scanAreaHeight;
+              const captureCtx = captureCanvas.getContext('2d');
+              
+              if (captureCtx) {
+                captureCtx.drawImage(
+                  canvas, 
+                  x, y, scanAreaWidth, scanAreaHeight,
+                  0, 0, scanAreaWidth, scanAreaHeight
+                );
+                setCapturedImage(captureCanvas.toDataURL("image/png"));
+              }
+            }, 1000);
           }
         } catch (error) {
           console.error("QRコードの検出中にエラーが発生しました:", error);
@@ -113,6 +116,9 @@ const QRScanner = () => {
     return () => {
       if (animationFrame) {
         cancelAnimationFrame(animationFrame);
+      }
+      if (captureTimeout) {
+        clearTimeout(captureTimeout);
       }
     };
   }, [scanning]);
