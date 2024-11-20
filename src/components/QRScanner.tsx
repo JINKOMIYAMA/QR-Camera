@@ -54,21 +54,37 @@ const QRScanner = () => {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
+        // Set canvas size to match video
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
 
-        const imageData = ctx.getImageData(
-          0,
-          0,
-          canvas.width,
-          canvas.height
+        // Calculate scan area dimensions (1:3 ratio)
+        const scanAreaHeight = Math.min(video.videoHeight * 0.2, video.videoWidth * 0.2);
+        const scanAreaWidth = scanAreaHeight * 3;
+        const x = (video.videoWidth - scanAreaWidth) / 2;
+        const y = (video.videoHeight - scanAreaHeight) / 2;
+
+        // Draw only the scan area to the canvas
+        ctx.drawImage(
+          video,
+          x, y, scanAreaWidth, scanAreaHeight,  // Source rectangle
+          0, 0, scanAreaWidth, scanAreaHeight    // Destination rectangle
         );
+
+        const imageData = ctx.getImageData(0, 0, scanAreaWidth, scanAreaHeight);
         const code = jsQR(imageData.data, imageData.width, imageData.height);
 
         if (code) {
           setScanning(false);
-          setCapturedImage(canvas.toDataURL("image/png"));
+          // Create a new canvas for the captured image
+          const captureCanvas = document.createElement('canvas');
+          captureCanvas.width = scanAreaWidth;
+          captureCanvas.height = scanAreaHeight;
+          const captureCtx = captureCanvas.getContext('2d');
+          if (captureCtx) {
+            captureCtx.drawImage(canvas, 0, 0);
+            setCapturedImage(captureCanvas.toDataURL("image/png"));
+          }
           toast.success("QRコードを検出しました");
         } else {
           animationFrame = requestAnimationFrame(scan);
