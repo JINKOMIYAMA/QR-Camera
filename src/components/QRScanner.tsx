@@ -57,16 +57,13 @@ const QRScanner = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
-        // スキャンエリアの計算（1:3の比率）
         const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
         const scanAreaHeight = scanAreaWidth / 3;
         const x = (video.videoWidth - scanAreaWidth) / 2;
         const y = (video.videoHeight - scanAreaHeight) / 2;
 
-        // ビデオ全体を描画
         ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
-        // スキャンエリアの画像データを取得
         const imageData = ctx.getImageData(x, y, scanAreaWidth, scanAreaHeight);
 
         try {
@@ -119,7 +116,7 @@ const QRScanner = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black">
+    <div className="fixed inset-0 bg-black/50">
       <video
         ref={videoRef}
         autoPlay
@@ -129,7 +126,7 @@ const QRScanner = () => {
       <canvas ref={canvasRef} className="hidden" />
       <ScanOverlay scanning={scanning} />
       
-      <div className="absolute bottom-8 left-0 right-0 flex justify-center">
+      <div className="absolute bottom-8 left-0 right-0 flex justify-center z-50">
         {capturedImage && (
           <Button
             onClick={handleDownload}
