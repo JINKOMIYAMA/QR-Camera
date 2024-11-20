@@ -85,7 +85,9 @@ const QRScanner = () => {
                 0, 0, scanAreaWidth, scanAreaHeight
               );
               setCapturedImage(captureCanvas.toDataURL("image/png"));
-              toast.success("QRコードを検出しました");
+              toast.success("QRコードを検出しました", {
+                position: "top-center"
+              });
             }
           }
         } catch (error) {
@@ -115,27 +117,50 @@ const QRScanner = () => {
     }
   };
 
+  const handleRetry = () => {
+    setScanning(true);
+    setCapturedImage(null);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50">
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        className="h-full w-full object-cover"
-      />
-      <canvas ref={canvasRef} className="hidden" />
-      <ScanOverlay scanning={scanning} />
-      
-      <div className="absolute bottom-8 left-0 right-0 flex justify-center z-50">
-        {capturedImage && (
-          <Button
-            onClick={handleDownload}
-            className="animate-fade-in bg-scanner-highlight px-8 py-4 text-white hover:bg-blue-700"
-          >
-            写真をダウンロード
-          </Button>
-        )}
-      </div>
+      {scanning ? (
+        <>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className="h-full w-full object-cover"
+          />
+          <canvas ref={canvasRef} className="hidden" />
+          <ScanOverlay scanning={scanning} />
+        </>
+      ) : (
+        <div className="relative h-full flex flex-col items-center justify-center bg-black/90">
+          {capturedImage && (
+            <img 
+              src={capturedImage} 
+              alt="Captured QR" 
+              className="max-w-[80%] h-auto rounded-lg shadow-lg animate-fade-in"
+            />
+          )}
+          <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4 z-50">
+            <Button
+              onClick={handleRetry}
+              variant="outline"
+              className="bg-white/10 text-white hover:bg-white/20"
+            >
+              撮り直す
+            </Button>
+            <Button
+              onClick={handleDownload}
+              className="bg-scanner-highlight hover:bg-blue-700"
+            >
+              ダウンロード
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
