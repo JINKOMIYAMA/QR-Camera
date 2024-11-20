@@ -54,35 +54,37 @@ const QRScanner = () => {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        // Set canvas size to match video
+        // キャンバスサイズをビデオサイズに合わせる
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
-        // Calculate scan area dimensions (1:3 ratio)
+        // スキャンエリアの計算（1:3の比率）
         const scanAreaHeight = Math.min(video.videoHeight * 0.2, video.videoWidth * 0.2);
         const scanAreaWidth = scanAreaHeight * 3;
         const x = (video.videoWidth - scanAreaWidth) / 2;
         const y = (video.videoHeight - scanAreaHeight) / 2;
 
-        // Draw only the scan area to the canvas
-        ctx.drawImage(
-          video,
-          x, y, scanAreaWidth, scanAreaHeight,  // Source rectangle
-          0, 0, scanAreaWidth, scanAreaHeight    // Destination rectangle
-        );
+        // ビデオ全体を一度描画
+        ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
-        const imageData = ctx.getImageData(0, 0, scanAreaWidth, scanAreaHeight);
+        // スキャンエリアの画像データを取得
+        const imageData = ctx.getImageData(x, y, scanAreaWidth, scanAreaHeight);
         const code = jsQR(imageData.data, imageData.width, imageData.height);
 
         if (code) {
           setScanning(false);
-          // Create a new canvas for the captured image
+          // キャプチャ用のキャンバスを作成
           const captureCanvas = document.createElement('canvas');
           captureCanvas.width = scanAreaWidth;
           captureCanvas.height = scanAreaHeight;
           const captureCtx = captureCanvas.getContext('2d');
           if (captureCtx) {
-            captureCtx.drawImage(canvas, 0, 0);
+            // スキャンエリアのみを切り取って描画
+            captureCtx.drawImage(
+              canvas, 
+              x, y, scanAreaWidth, scanAreaHeight,  // ソース領域
+              0, 0, scanAreaWidth, scanAreaHeight   // 描画先領域
+            );
             setCapturedImage(captureCanvas.toDataURL("image/png"));
           }
           toast.success("QRコードを検出しました");
