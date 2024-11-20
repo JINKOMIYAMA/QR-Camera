@@ -10,27 +10,29 @@ const QRScanner = () => {
   const [scanning, setScanning] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
-  useEffect(() => {
-    const startCamera = async () => {
-      try {
-        const constraints = {
-          video: {
-            facingMode: "environment",
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
-        };
-        
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+  const startCamera = async () => {
+    try {
+      const constraints = {
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         }
-      } catch (err) {
-        toast.error("カメラへのアクセスが拒否されました");
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
       }
-    };
+    } catch (err) {
+      toast.error("カメラへのアクセスが拒否されました");
+    }
+  };
 
-    startCamera();
+  useEffect(() => {
+    if (scanning) {
+      startCamera();
+    }
 
     return () => {
       if (videoRef.current?.srcObject) {
@@ -39,7 +41,7 @@ const QRScanner = () => {
           .forEach((track) => track.stop());
       }
     };
-  }, []);
+  }, [scanning]);
 
   useEffect(() => {
     let animationFrame: number;
