@@ -66,12 +66,12 @@ const QRScanner = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
+        ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+
         const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
         const scanAreaHeight = scanAreaWidth / 2;
         const x = (video.videoWidth - scanAreaWidth) / 2;
         const y = (video.videoHeight - scanAreaHeight) / 2;
-
-        ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
         const imageData = ctx.getImageData(x, y, scanAreaWidth, scanAreaHeight);
 
@@ -88,18 +88,20 @@ const QRScanner = () => {
             });
 
             captureTimeout = setTimeout(() => {
-              const captureCanvas = document.createElement('canvas');
-              captureCanvas.width = scanAreaWidth;
-              captureCanvas.height = scanAreaHeight;
-              const captureCtx = captureCanvas.getContext('2d');
-              
-              if (captureCtx) {
-                captureCtx.drawImage(
-                  canvas, 
-                  x, y, scanAreaWidth, scanAreaHeight,
-                  0, 0, scanAreaWidth, scanAreaHeight
-                );
-                setCapturedImage(captureCanvas.toDataURL("image/png"));
+              if (canvas) {
+                const captureCanvas = document.createElement('canvas');
+                captureCanvas.width = scanAreaWidth;
+                captureCanvas.height = scanAreaHeight;
+                const captureCtx = captureCanvas.getContext('2d');
+                
+                if (captureCtx) {
+                  captureCtx.drawImage(
+                    canvas, 
+                    x, y, scanAreaWidth, scanAreaHeight,
+                    0, 0, scanAreaWidth, scanAreaHeight
+                  );
+                  setCapturedImage(captureCanvas.toDataURL("image/png"));
+                }
               }
             }, 3000); // 3秒に変更
           }
