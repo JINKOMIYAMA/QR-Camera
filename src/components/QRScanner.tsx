@@ -10,6 +10,7 @@ const QRScanner = () => {
   const [scanning, setScanning] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [detected, setDetected] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
 
   const startCamera = async () => {
     try {
@@ -30,6 +31,9 @@ const QRScanner = () => {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          setIsVideoReady(true);
+        };
       }
     } catch (err) {
       toast.error("カメラへのアクセスが拒否されました");
@@ -40,6 +44,7 @@ const QRScanner = () => {
     if (scanning) {
       startCamera();
       setDetected(false);
+      setIsVideoReady(false);
     }
 
     return () => {
@@ -55,7 +60,7 @@ const QRScanner = () => {
     let animationFrame: number;
 
     const scan = () => {
-      if (!scanning || detected) return;
+      if (!scanning || detected || !isVideoReady) return;
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -67,16 +72,24 @@ const QRScanner = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
+        // スキャンエリアのサイズを計算
         const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
-        const scanAreaHeight = scanAreaWidth / 2; // 高さを2倍に変更
-        const x = (video.videoWidth - scanAreaWidth) / 2;
-        const y = (video.videoHeight - scanAreaHeight) / 2;
+        const scanAreaHeight = scanAreaWidth / 2;
+        const x = Math.max(0, (video.videoWidth - scanAreaWidth) / 2);
+        const y = Math.max(0, (video.videoHeight - scanAreaHeight) / 2);
 
+        // ビデオフレームを描画
         ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
-        const imageData = ctx.getImageData(x, y, scanAreaWidth, scanAreaHeight);
-
         try {
+          // スキャンエリア内のイメージデータを取得
+          const imageData = ctx.getImageData(
+            Math.floor(x),
+            Math.floor(y),
+            Math.min(scanAreaWidth, video.videoWidth - x),
+            Math.min(scanAreaHeight, video.videoHeight - y)
+          );
+
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: "dontInvert",
           });
@@ -89,16 +102,12 @@ const QRScanner = () => {
 
             setTimeout(() => {
               const captureCanvas = document.createElement('canvas');
-              captureCanvas.width = scanAreaWidth;
-              captureCanvas.height = scanAreaHeight;
+              captureCanvas.width = imageData.width;
+              captureCanvas.height = imageData.height;
               const captureCtx = captureCanvas.getContext('2d');
               
               if (captureCtx) {
-                captureCtx.drawImage(
-                  canvas, 
-                  x, y, scanAreaWidth, scanAreaHeight,
-                  0, 0, scanAreaWidth, scanAreaHeight
-                );
+                captureCtx.putImageData(imageData, 0, 0);
                 setCapturedImage(captureCanvas.toDataURL("image/png"));
                 setScanning(false);
               }
@@ -119,7 +128,7 @@ const QRScanner = () => {
         cancelAnimationFrame(animationFrame);
       }
     };
-  }, [scanning, detected]);
+  }, [scanning, detected, isVideoReady]);
 
   const handleDownload = () => {
     if (capturedImage) {
