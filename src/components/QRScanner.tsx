@@ -72,17 +72,14 @@ const QRScanner = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
-        // スキャンエリアのサイズを計算（アスペクト比2.9:1.2を適用）
         const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
-        const scanAreaHeight = (scanAreaWidth * 1.2) / 2.9; // 比率を2.9:1.2に変更
+        const scanAreaHeight = (scanAreaWidth * 1.2) / 2.9;
         const x = Math.floor((video.videoWidth - scanAreaWidth) / 2);
         const y = Math.floor((video.videoHeight - scanAreaHeight) / 2);
 
-        // ビデオフレーム全体を描画
         ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
         try {
-          // スキャンエリアのイメージデータを取得
           const imageData = ctx.getImageData(x, y, scanAreaWidth, scanAreaHeight);
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: "dontInvert",
@@ -94,7 +91,7 @@ const QRScanner = () => {
               position: "top-center"
             });
 
-            // 検出後、スキャンエリアの画像を保存
+            // Changed from 2000ms to 3000ms (3 seconds)
             setTimeout(() => {
               const captureCanvas = document.createElement('canvas');
               captureCanvas.width = scanAreaWidth;
@@ -102,7 +99,6 @@ const QRScanner = () => {
               const captureCtx = captureCanvas.getContext('2d');
               
               if (captureCtx) {
-                // スキャンエリアの画像だけを切り取って保存
                 captureCtx.drawImage(
                   canvas,
                   x, y, scanAreaWidth, scanAreaHeight,
@@ -111,7 +107,7 @@ const QRScanner = () => {
                 setCapturedImage(captureCanvas.toDataURL("image/png"));
                 setScanning(false);
               }
-            }, 2000);
+            }, 3000);
           }
         } catch (error) {
           console.error("QRコードの検出中にエラーが発生しました:", error);
