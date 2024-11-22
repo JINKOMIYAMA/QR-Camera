@@ -72,17 +72,17 @@ const QRScanner = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
-        // Calculate scan area size (maintaining 2:1 aspect ratio)
+        // スキャンエリアのサイズを計算（アスペクト比3:1を適用）
         const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
-        const scanAreaHeight = scanAreaWidth / 2;
+        const scanAreaHeight = scanAreaWidth / 3; // 比率を3:1に変更
         const x = Math.floor((video.videoWidth - scanAreaWidth) / 2);
         const y = Math.floor((video.videoHeight - scanAreaHeight) / 2);
 
-        // Draw full video frame
+        // ビデオフレーム全体を描画
         ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
         try {
-          // Get image data from scan area
+          // スキャンエリアのイメージデータを取得
           const imageData = ctx.getImageData(x, y, scanAreaWidth, scanAreaHeight);
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: "dontInvert",
@@ -94,7 +94,7 @@ const QRScanner = () => {
               position: "top-center"
             });
 
-            // After detection, save the scan area image
+            // 検出後、スキャンエリアの画像を保存
             setTimeout(() => {
               const captureCanvas = document.createElement('canvas');
               captureCanvas.width = scanAreaWidth;
@@ -102,7 +102,7 @@ const QRScanner = () => {
               const captureCtx = captureCanvas.getContext('2d');
               
               if (captureCtx) {
-                // Cut and save only the scan area
+                // スキャンエリアの画像だけを切り取って保存
                 captureCtx.drawImage(
                   canvas,
                   x, y, scanAreaWidth, scanAreaHeight,
