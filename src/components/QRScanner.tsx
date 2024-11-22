@@ -68,16 +68,13 @@ const QRScanner = () => {
         canvas.height = video.videoHeight;
 
         const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
-        const scanAreaHeight = scanAreaWidth / 3;
+        const scanAreaHeight = scanAreaWidth / 2; // 高さを2倍に変更
         const x = (video.videoWidth - scanAreaWidth) / 2;
         const y = (video.videoHeight - scanAreaHeight) / 2;
 
         ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
-        const extendedY = y - 5;
-        const extendedHeight = scanAreaHeight + 10;
-
-        const imageData = ctx.getImageData(x, extendedY, scanAreaWidth, extendedHeight);
+        const imageData = ctx.getImageData(x, y, scanAreaWidth, scanAreaHeight);
 
         try {
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
@@ -90,18 +87,17 @@ const QRScanner = () => {
               position: "top-center"
             });
 
-            // 2秒後に撮影を実行
             setTimeout(() => {
               const captureCanvas = document.createElement('canvas');
               captureCanvas.width = scanAreaWidth;
-              captureCanvas.height = extendedHeight;
+              captureCanvas.height = scanAreaHeight;
               const captureCtx = captureCanvas.getContext('2d');
               
               if (captureCtx) {
                 captureCtx.drawImage(
                   canvas, 
-                  x, extendedY, scanAreaWidth, extendedHeight,
-                  0, 0, scanAreaWidth, extendedHeight
+                  x, y, scanAreaWidth, scanAreaHeight,
+                  0, 0, scanAreaWidth, scanAreaHeight
                 );
                 setCapturedImage(captureCanvas.toDataURL("image/png"));
                 setScanning(false);
