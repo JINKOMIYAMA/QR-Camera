@@ -72,152 +72,17 @@ const QRScanner = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
-        // スキャンエリアのサイズを計算（アスペクト比2:1を維持）
-        const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
-        const scanAreaHeight = scanAreaWidth / 2;
-        const x = Math.max(0, Math.floor((video.videoWidth - scanAreaWidth) / 2));
-        const y = Math.max(0, Math.floor((video.videoHeight - scanAreaHeight) / 2));
-
-        // ビデオフレームを描画
-        ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-
-        try {
-          // スキャンエリア内のイメージデータを取得
-          const width = Math.min(scanAreaWidth, video.videoWidth - x);
-          const height = Math.min(scanAreaHeight, video.videoHeight - y);
-          const imageData = ctx.getImageData(x, y, width, height);
-
-          const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert",
-          });
-
-          if (code) {
-            setDetected(true);
-            toast.success("QRコードを検出しました", {
-              position: "top-center"
-            });
-
-            // 検出後、同じ範囲の画像を切り取って保存
-            setTimeout(() => {
-              const captureCanvas = document.createElement('canvas');
-              captureCanvas.width = width;
-              captureCanvas.height = height;
-              const captureCtx = captureCanvas.getContext('2d');
-              
-              if (captureCtx) {
-                // 元のキャンバスから正確な範囲を切り取る
-                captureCtx.drawImage(
-                  canvas,
-                  x, y, width, height,
-                  0, 0, width, height
-                );
-                setCapturedImage(captureCanvas.toDataURL("image/png"));
-                setScanning(false);
-              }
-            }, 2000);
-          }
-        } catch (error) {
-          console.error("QRコードの検出中にエラーが発生しました:", error);
-        }
-      }
-
-      animationFrame = requestAnimationFrame(scan);
-    };
-
-    scan();
-
-    return () => {
-      if (animationFrame)スキャンエリアと実際に保存される画像の大きさを完全に一致させるように修正します。
-
-<lov-code>
-Let's update the QRScanner.tsx file to ensure the scan area and captured image sizes match perfectly:
-
-<lov-write file_path="src/components/QRScanner.tsx">
-import React, { useEffect, useRef, useState } from "react";
-import jsQR from "jsqr";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import ScanOverlay from "./ScanOverlay";
-
-const QRScanner = () => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [scanning, setScanning] = useState(true);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [detected, setDetected] = useState(false);
-  const [isVideoReady, setIsVideoReady] = useState(false);
-
-  const startCamera = async () => {
-    try {
-      if (videoRef.current?.srcObject) {
-        (videoRef.current.srcObject as MediaStream)
-          .getTracks()
-          .forEach((track) => track.stop());
-      }
-
-      const constraints = {
-        video: {
-          facingMode: "environment",
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      };
-      
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          setIsVideoReady(true);
-        };
-      }
-    } catch (err) {
-      toast.error("カメラへのアクセスが拒否されました");
-    }
-  };
-
-  useEffect(() => {
-    if (scanning) {
-      startCamera();
-      setDetected(false);
-      setIsVideoReady(false);
-    }
-
-    return () => {
-      if (videoRef.current?.srcObject) {
-        (videoRef.current.srcObject as MediaStream)
-          .getTracks()
-          .forEach((track) => track.stop());
-      }
-    };
-  }, [scanning]);
-
-  useEffect(() => {
-    let animationFrame: number;
-
-    const scan = () => {
-      if (!scanning || detected || !isVideoReady) return;
-
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-
-      if (video?.readyState === video.HAVE_ENOUGH_DATA && canvas) {
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        // スキャンエリアのサイズを計算（アスペクト比2:1を維持）
+        // Calculate scan area size (maintaining 2:1 aspect ratio)
         const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
         const scanAreaHeight = scanAreaWidth / 2;
         const x = Math.floor((video.videoWidth - scanAreaWidth) / 2);
         const y = Math.floor((video.videoHeight - scanAreaHeight) / 2);
 
-        // ビデオフレーム全体を描画
+        // Draw full video frame
         ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
         try {
-          // スキャンエリアのイメージデータを取得
+          // Get image data from scan area
           const imageData = ctx.getImageData(x, y, scanAreaWidth, scanAreaHeight);
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: "dontInvert",
@@ -229,7 +94,7 @@ const QRScanner = () => {
               position: "top-center"
             });
 
-            // 検出後、スキャンエリアの画像を保存
+            // After detection, save the scan area image
             setTimeout(() => {
               const captureCanvas = document.createElement('canvas');
               captureCanvas.width = scanAreaWidth;
@@ -237,7 +102,7 @@ const QRScanner = () => {
               const captureCtx = captureCanvas.getContext('2d');
               
               if (captureCtx) {
-                // スキャンエリアの画像だけを切り取って保存
+                // Cut and save only the scan area
                 captureCtx.drawImage(
                   canvas,
                   x, y, scanAreaWidth, scanAreaHeight,
