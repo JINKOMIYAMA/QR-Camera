@@ -72,9 +72,9 @@ const QRScanner = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
-        // スキャンエリアのサイズを計算（アスペクト比3:1を適用）
+        // スキャンエリアのサイズを計算（アスペクト比2.9:1.2を適用）
         const scanAreaWidth = Math.min(video.videoWidth * 0.8, 800);
-        const scanAreaHeight = scanAreaWidth / 3; // 比率を3:1に変更
+        const scanAreaHeight = (scanAreaWidth * 1.2) / 2.9; // 比率を2.9:1.2に変更
         const x = Math.floor((video.videoWidth - scanAreaWidth) / 2);
         const y = Math.floor((video.videoHeight - scanAreaHeight) / 2);
 

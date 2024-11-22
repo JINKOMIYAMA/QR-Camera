@@ -8,7 +8,7 @@ const ScanOverlay: React.FC<ScanOverlayProps> = ({ scanning }) => {
   return (
     <div className="absolute inset-0 z-10">
       <div className="absolute inset-0 bg-scanner-overlay">
-        <div className="absolute left-1/2 top-1/2 h-32 w-96 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border-2 border-scanner-highlight bg-transparent">
+        <div className="absolute left-1/2 top-1/2 h-[124px] w-[300px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border-2 border-scanner-highlight bg-transparent">
           {scanning && (
             <div className="absolute left-0 right-0 h-0.5 w-full animate-scan-line bg-scanner-highlight" />
           )}
