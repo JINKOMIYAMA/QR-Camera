@@ -6,6 +6,7 @@ import ScanOverlay from "./ScanOverlay";
 
 const QRScanner = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvas = document.createElement('canvas');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scanning, setScanning] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -66,7 +67,7 @@ const QRScanner = () => {
       const canvas = canvasRef.current;
 
       if (video?.readyState === video.HAVE_ENOUGH_DATA && canvas) {
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) return;
 
         canvas.width = video.videoWidth;

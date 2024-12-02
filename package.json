@@ -8,7 +8,10 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node server.js",
+    "build:exe": "npm run clean && pkg server.js --targets node16-win-x64 --output qr-capture-bright.exe --assets dist/**/*",
+    "clean": "if exist qr-capture-bright.exe del /f qr-capture-bright.exe"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -45,6 +48,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
+    "express": "^4.21.1",
     "input-otp": "^1.2.4",
     "jsqr": "^1.4.0",
     "lucide-react": "^0.451.0",
@@ -75,6 +79,7 @@
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
     "lovable-tagger": "^1.0.19",
+    "pkg": "^5.8.1",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",

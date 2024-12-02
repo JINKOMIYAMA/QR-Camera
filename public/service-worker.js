@@ -1,11 +1,16 @@
-const CACHE_NAME = 'qr-capture-bright-v1';
+const CACHE_NAME = 'qr-capture-bright-v2';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/favicon.ico',
   '/src/main.tsx',
   '/src/index.css',
   '/src/App.tsx',
-  '/favicon.ico'
+  '/offline.html',
+  '/node_modules/vite/deps/react-dom_client.js',
+  '/node_modules/vite/deps/@tanstack_react-query.js',
+  '/node_modules/vite/deps/react-router-dom.js',
+  '/node_modules/vite/deps/react_jsx-dev-runtime.js'
 ];
 
 self.addEventListener('install', (event) => {
@@ -19,21 +24,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request)
-          .then((response) => {
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-            return response;
-          });
+        return response || fetch(event.request).catch(() => caches.match('/offline.html'));
       })
   );
 });
