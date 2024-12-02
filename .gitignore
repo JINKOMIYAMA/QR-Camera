@@ -1,13 +1,6 @@
 # 依存関係
 node_modules/
 
-# ビルド出力
-dist/
-build/
-
-# 実行ファイル
-*.exe
-
 # 環境設定
 .env
 .env.local
